@@ -109,11 +109,11 @@ def main(args):
     model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
     model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
     model.add(Flatten())
-    model.add(Dense(1164), activation='relu')
-    model.add(Dense(100), activation='relu')
-    model.add(Dense(50), activation='relu')
-    model.add(Dense(10), activation='relu')
-    model.add(Dense(1), activation='relu')
+    model.add(Dense(1164, activation='relu'))
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(50, activation='relu'))
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(1, activation='relu'))
 
     # We use mean squared error instead of something like softmax because we
     # are trying to predict a continuous value.
