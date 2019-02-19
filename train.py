@@ -54,12 +54,13 @@ def read_train_data_in_batches(data_dir: str, csv_filename: str, batch_size=None
         if images:
             yield images, measurements
 
-def read_train_data(data_dir: str, csv_filename: str) -> Tuple[np.array, np.array]:
+def read_train_data(data_dir: str, csv_filename: str, correction: float=0.2) -> Tuple[np.array, np.array]:
     """Reads the train data from the given `data_dir`.
 
     Args:
         data_dir: directory where the data is located at.
         csv_filename: name of the CSV training file inside `data_dir`.
+        correction: correction factor for left and right images.
 
     Returns:
         Tuples, where each tuple contains the X data and the y data.
@@ -75,20 +76,20 @@ def read_train_data(data_dir: str, csv_filename: str) -> Tuple[np.array, np.arra
         images = []
         measurements = []
         for line in reader:
-            filenames = (os.path.join(data_dir, x.strip()) for x in line[:3]) 
-            center, left, right = filenames
-            measurement = float(line[3])
+            filenames = (os.path.join(data_dir, x.strip()) for x in line[:3])
+            offsets = (0.0, correction, -correction)
 
-            # TODO: let's add left and right images with the right correction
-            # for the steering measurement.
-            center_img = cv2.imread(center)
-            images.append(center_img)
-            measurements.append(measurement)
+            for filename, offset in zip(filenames, offsets):
+                img = cv2.imread(filename)
+                measurement = float(line[3]) + offset
 
-            # Add flipped images with negative steering in order to augment the
-            # data set.
-            images.append(np.fliplr(center_img))
-            measurements.append(-measurement)
+                images.append(img)
+                measurements.append(measurement)
+
+                # Add flipped images with negative steering in order to augment the
+                # data set.
+                images.append(np.fliplr(img))
+                measurements.append(-measurement)
 
         return np.array(images), np.array(measurements)
 
