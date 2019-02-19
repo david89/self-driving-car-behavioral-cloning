@@ -2,7 +2,7 @@ import argparse
 import csv
 import cv2
 from keras.models import Sequential
-from keras.layers import Conv2D, Dense, Flatten, Lambda, MaxPooling2D
+from keras.layers import Conv2D, Cropping2D, Dense, Flatten, Lambda, MaxPooling2D
 import numpy as np
 from typing import Iterable, Tuple
 import os
@@ -100,6 +100,7 @@ def main(args):
     # The following standardization worked better than the (X - mean) / stddev
     # standardization technique.
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160, 320, 3)))
+    model.add(Cropping2D(cropping=((70, 25), (0, 0))))
 
     # LetNet-like architecture
     model.add(Conv2D(filters=6, kernel_size=(5, 5), padding='valid', activation='relu'))
