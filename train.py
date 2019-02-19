@@ -113,7 +113,7 @@ def main(args):
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
-    model.add(Dense(1, activation='relu'))
+    model.add(Dense(1))
 
     # We use mean squared error instead of something like softmax because we
     # are trying to predict a continuous value.
