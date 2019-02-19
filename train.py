@@ -2,7 +2,7 @@ import argparse
 import csv
 import cv2
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Lambda
+from keras.layers import Conv2D, Dense, Flatten, Lambda, MaxPooling2D
 import numpy as np
 from typing import Iterable, Tuple
 import os
@@ -93,7 +93,15 @@ def main(args):
     # The following standardization worked better than the (X - mean) / stddev
     # standardization technique.
     model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
+
+    # LetNet
+    model.add(Conv2D(filters=6, kernel_size=(5, 5), padding='valid', activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+    model.add(Conv2D(filters=16, kernel_size=(5, 5), padding='valid', activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
     model.add(Flatten())
+    model.add(Dense(120))
+    model.add(Dense(84))
     model.add(Dense(1))
 
     # We use mean squared error instead of something like softmax because we
