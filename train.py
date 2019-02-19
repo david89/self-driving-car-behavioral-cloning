@@ -81,8 +81,14 @@ def read_train_data(data_dir: str, csv_filename: str) -> Tuple[np.array, np.arra
 
             # TODO: let's add left and right images with the right correction
             # for the steering measurement.
-            images.append(cv2.imread(center))
+            center_img = cv2.imread(center)
+            images.append(center_img)
             measurements.append(measurement)
+
+            # Add flipped images with negative steering in order to augment the
+            # data set.
+            images.append(np.fliplr(center_img))
+            measurements.append(-measurement)
 
         return np.array(images), np.array(measurements)
 
