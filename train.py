@@ -2,7 +2,7 @@ import argparse
 import csv
 import cv2
 from keras.models import Sequential
-from keras.layers import Flatten, Dense
+from keras.layers import Dense, Flatten, Lambda
 import numpy as np
 from typing import Iterable, Tuple
 import os
@@ -88,10 +88,12 @@ def read_train_data(data_dir: str, csv_filename: str) -> Tuple[np.array, np.arra
 
 def main(args):
     X_train, y_train = read_train_data(args.data_dir, _CSV_FILENAME)
-    print(X_train[0].shape)
 
     model = Sequential()
-    model.add(Flatten(input_shape=(160, 320, 3)))
+    # The following standardization worked better than the (X - mean) / stddev
+    # standardization technique.
+    model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
+    model.add(Flatten())
     model.add(Dense(1))
 
     # We use mean squared error instead of something like softmax because we
