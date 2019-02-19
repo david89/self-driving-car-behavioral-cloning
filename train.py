@@ -98,14 +98,15 @@ def main(args):
     model = Sequential()
     # The following standardization worked better than the (X - mean) / stddev
     # standardization technique.
-    model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160, 320, 3)))
 
-    # LetNet
+    # LetNet-like architecture
     model.add(Conv2D(filters=6, kernel_size=(5, 5), padding='valid', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
     model.add(Conv2D(filters=16, kernel_size=(5, 5), padding='valid', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
     model.add(Flatten())
+    model.add(Dense(1000))
     model.add(Dense(120))
     model.add(Dense(84))
     model.add(Dense(1))
