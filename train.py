@@ -167,7 +167,7 @@ if __name__ == '__main__':
             help='Directory where the training data is present')
     parser.add_argument('-e', '--epochs', default=10, type=int,
             help='Numbers of epochs we should train our model with')
-    parser.add_argument('-l', '--graph_loss', default=False, type=bool,
+    parser.add_argument('-l', '--graph_loss', action='store_true',
             help='Whether we should graph the loss function or not')
     parser.add_argument('-m', '--model_filename',
             help='If specified, the model is saved into the given location')
