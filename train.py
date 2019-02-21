@@ -127,12 +127,18 @@ def main(args):
     # We use mean squared error instead of something like softmax because we
     # are trying to predict a continuous value.
     model.compile(loss='mse', optimizer='adam')
+    # TODO: This may fall out of sync if we add more transformations.
+    # Maybe the best idea is to generate a list of structs instead of lines,
+    # where each class contains the log entry and the expected transformation.
+    FACTOR = 6 if args.augment else 3
+    steps_per_epoch = int(ceil(FACTOR * len(train_lines) / args.batch_size))
+    validation_steps = int(ceil(FACTOR * len(validation_lines) / args.batch_size))
     model.fit_generator(
             train_generator,
-            steps_per_epoch=int(ceil(len(train_lines) / args.batch_size)),
+            steps_per_epoch=steps_per_epoch,
             epochs=args.epochs,
             validation_data=validation_generator,
-            validation_steps=int(ceil(len(validation_lines) / args.batch_size)),
+            validation_steps=validation_steps,
             shuffle=True)
 
     if args.model_filename:
