@@ -3,27 +3,20 @@ import csv
 import cv2
 from keras.models import Sequential
 from keras.layers import Conv2D, Cropping2D, Dense, Flatten, Lambda, MaxPooling2D
+from math import ceil
 import numpy as np
-from typing import Iterable, Tuple
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+from typing import Iterable, List, Tuple
 import os
 
+# TODO: Maybe pass this as a flag?
 _CSV_FILENAME = 'driving_log.csv'
 
-def read_train_data_in_batches(data_dir: str, csv_filename: str, batch_size=None) -> Iterable[Tuple[np.array, np.array]]:
-    """Reads the train data from the given `data_dir` in batches.
-
-    Args:
-        data_dir: directory where the data is located at.
-        csv_filename: name of the CSV training file inside `data_dir`.
-        batch_size: is specified, we return data in batches.
-
-    Returns:
-        Generator of tuples, where each tuple contains the X data and the
-        y data.
-    """
-    assert(batch_size is None or batch_size > 0)
-
+def read_log_lines(data_dir: str, csv_filename: str) -> List[str]:
+    """Reads the train data entries from the specified csv_filename."""
     filepath = os.path.join(data_dir, csv_filename)
+    # TODO: maybe use pandas in order to read the data from csv.
     with open(filepath, 'r') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
 
@@ -31,70 +24,86 @@ def read_train_data_in_batches(data_dir: str, csv_filename: str, batch_size=None
         # Sanitize the header just in case
         assert(header[:4] == ['center', 'left', 'right', 'steering'])
 
-        images = []
-        measurements = []
+        lines = []
         for line in reader:
-            filenames = (os.path.join(data_dir, x.strip()) for x in line[:3]) 
-            center, left, right = filenames
-            measurement = float(line[3])
+            lines.append(line)
 
-            # TODO: let's add left and right images with the right correction
-            # for the steering measurement.
-            images.append(cv2.imread(center))
-            measurements.append(measurement)
+        return lines
 
-            if batch_size and len(images) >= batch_size:
-                yield images, measurements
 
-                images.clear()
-                measurements.clear()
-
-        # It's possible that we still have some leftover data that hasn't been
-        # reported, or maybe the batch_size is None.
-        if images:
-            yield images, measurements
-
-def read_train_data(data_dir: str, csv_filename: str, correction: float=0.2) -> Tuple[np.array, np.array]:
-    """Reads the train data from the given `data_dir`.
+def read_data(
+        data_dir: str,
+        lines: List[str],
+        augment: bool=False,
+        correction: float=0.2,
+        batch_size: int=600) -> Iterable[Tuple[np.array, np.array]]:
+    """Reads the data from the given `data_dir` using the given log entries.
 
     Args:
         data_dir: directory where the data is located at.
-        csv_filename: name of the CSV training file inside `data_dir`.
+        lines: lines read from the CSV log file.
+        augment: whether we should generate more synthetic data or not.
         correction: correction factor for left and right images.
+        batch_size: upper bound on how many elements we should return per
+            batch.
 
-    Returns:
-        Tuples, where each tuple contains the X data and the y data.
+    Yields:
+        Iterator of list of tuples of size <= batch_size, where each tuple
+        contains the X data and the y data.
     """
-    filepath = os.path.join(data_dir, csv_filename)
-    with open(filepath, 'r') as csv_file:
-        reader = csv.reader(csv_file, delimiter=',')
 
-        header = next(reader)
-        # Sanitize the header just in case
-        assert(header[:4] == ['center', 'left', 'right', 'steering'])
+    num_samples = len(lines)
 
-        images = []
-        measurements = []
-        for line in reader:
-            filenames = (os.path.join(data_dir, x.strip()) for x in line[:3])
+    imgs = []
+    ms = []
+    identity_fn = lambda img, m: (img, m)
+    transformations = [identity_fn]
+    if augment:
+        # The only transformation function that we have right now is to mirror
+        # the image horizontally.
+        flip_fn = lambda img, m: (np.fliplr(img), -m)
+        transformations.append(flip_fn)
+
+    # This generator should never stop producing results.
+    while True:
+        for sample_line in lines:
+            # For each entry we have three images: center, left and right, each
+            # with a different offset value.
+            filenames = (
+                    os.path.join(data_dir, x.strip()) for x in sample_line[:3])
             offsets = (0.0, correction, -correction)
 
             for filename, offset in zip(filenames, offsets):
                 img = cv2.imread(filename)
-                measurement = float(line[3]) + offset
+                measurement = float(sample_line[3]) + offset
 
-                images.append(img)
-                measurements.append(measurement)
+                for transformation in transformations:
+                    new_img, new_measurement = transformation(img, measurement)
+                    imgs.append(new_img)
+                    ms.append(new_measurement)
 
-                # Add flipped images with negative steering in order to augment the
-                # data set.
-                images.append(np.fliplr(img))
-                measurements.append(-measurement)
+                    if len(imgs) == batch_size:
+                        yield np.array(imgs), np.array(ms)
 
-        return np.array(images), np.array(measurements)
+                        imgs = []
+                        ms = []
+
 
 def main(args):
-    X_train, y_train = read_train_data(args.data_dir, _CSV_FILENAME)
+    lines = read_log_lines(args.data_dir, _CSV_FILENAME)
+    train_lines, validation_lines = train_test_split(lines, test_size=0.2)
+    train_generator = read_data(
+            args.data_dir,
+            train_lines,
+            augment=args.augment,
+            correction=args.correction,
+            batch_size=args.batch_size)
+    validation_generator = read_data(
+            args.data_dir,
+            validation_lines,
+            augment=args.augment,
+            correction=args.correction,
+            batch_size=args.batch_size)
 
     model = Sequential()
     # The following standardization worked better than the (X - mean) / stddev
@@ -118,7 +127,13 @@ def main(args):
     # We use mean squared error instead of something like softmax because we
     # are trying to predict a continuous value.
     model.compile(loss='mse', optimizer='adam')
-    model.fit(X_train, y_train, validation_split=0.2, shuffle=True, epochs=args.epochs)
+    model.fit_generator(
+            train_generator,
+            steps_per_epoch=int(ceil(len(train_lines) / args.batch_size)),
+            epochs=args.epochs,
+            validation_data=validation_generator,
+            validation_steps=int(ceil(len(validation_lines) / args.batch_size)),
+            shuffle=True)
 
     if args.model_filename:
         model.save(args.model_filename)
@@ -126,13 +141,18 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
             description='Trains a behavioral cloning model')
-    parser.add_argument('-b', '--batch_size', help='Batch size', type=int)
+    parser.add_argument('-a', '--augment', default=True, type=bool,
+            help='Whether to augment the data set or not')
+    parser.add_argument('-b', '--batch_size', default=600, type=int,
+            help='Batch size')
+    parser.add_argument('-c', '--correction', default=0.2, type=float,
+            help='Correction factor')
     parser.add_argument('-d', '--data_dir', required=True,
             help='Directory where the training data is present')
-    parser.add_argument('-m', '--model_filename',
-            help='If specified, the model is saved into the given location')
     parser.add_argument('-e', '--epochs', default=10, type=int,
             help='Numbers of epochs we should train our model with')
+    parser.add_argument('-m', '--model_filename',
+            help='If specified, the model is saved into the given location')
 
     args = parser.parse_args()
     main(args)
