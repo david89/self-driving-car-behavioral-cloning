@@ -4,6 +4,7 @@ import cv2
 from keras.models import Sequential
 from keras.layers import Conv2D, Cropping2D, Dense, Flatten, Lambda, MaxPooling2D
 from math import ceil
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -134,12 +135,21 @@ def main(args):
     FACTOR = 6 if args.augment else 3
     steps_per_epoch = int(ceil(FACTOR * len(train_lines) / args.batch_size))
     validation_steps = int(ceil(FACTOR * len(validation_lines) / args.batch_size))
-    model.fit_generator(
+    history_object = model.fit_generator(
             train_generator,
             steps_per_epoch=steps_per_epoch,
             epochs=args.epochs,
             validation_data=validation_generator,
             validation_steps=validation_steps)
+
+    if args.graph_loss:
+        plt.plot(history_object.history['loss'])
+        plt.plot(history_object.history['val_loss'])
+        plt.title('model mean squared error loss')
+        plt.ylabel('mean squared error loss')
+        plt.xlabel('epoch')
+        plt.legend(['training set', 'validation set'], loc='upper right')
+        plt.show()
 
     if args.model_filename:
         model.save(args.model_filename)
@@ -157,6 +167,8 @@ if __name__ == '__main__':
             help='Directory where the training data is present')
     parser.add_argument('-e', '--epochs', default=10, type=int,
             help='Numbers of epochs we should train our model with')
+    parser.add_argument('-l', '--graph_loss', default=False, type=bool,
+            help='Whether we should graph the loss function or not')
     parser.add_argument('-m', '--model_filename',
             help='If specified, the model is saved into the given location')
 
