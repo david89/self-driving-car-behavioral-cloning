@@ -83,7 +83,7 @@ def read_data(
                     ms.append(new_measurement)
 
                     if len(imgs) == batch_size:
-                        yield np.array(imgs), np.array(ms)
+                        yield shuffle(np.array(imgs), np.array(ms))
 
                         imgs = []
                         ms = []
@@ -91,6 +91,7 @@ def read_data(
 
 def main(args):
     lines = read_log_lines(args.data_dir, _CSV_FILENAME)
+    # TODO: maybe add a flag for the test size.
     train_lines, validation_lines = train_test_split(lines, test_size=0.2)
     train_generator = read_data(
             args.data_dir,
@@ -138,8 +139,7 @@ def main(args):
             steps_per_epoch=steps_per_epoch,
             epochs=args.epochs,
             validation_data=validation_generator,
-            validation_steps=validation_steps,
-            shuffle=True)
+            validation_steps=validation_steps)
 
     if args.model_filename:
         model.save(args.model_filename)
