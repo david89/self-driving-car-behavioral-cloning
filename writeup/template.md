@@ -51,7 +51,7 @@ Yes. We are going to get into more details about this later.
 Yes. We are going to get into more details about this later.
 
 #### Is the car able to navigate correctly on test data?
-Yes. As you can see in the [following video](video.mp4)
+Yes. As you can see in the [following video](../video.mp4)
 
 ---
 ### Files Submitted & Code Quality
