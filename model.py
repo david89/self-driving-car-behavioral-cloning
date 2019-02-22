@@ -2,7 +2,7 @@ import argparse
 import csv
 import cv2
 from keras.models import Sequential
-from keras.layers import Conv2D, Cropping2D, Dense, Flatten, Lambda, MaxPooling2D
+from keras.layers import Conv2D, Cropping2D, Dense, Dropout, Flatten, Lambda, MaxPooling2D
 from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
@@ -119,6 +119,7 @@ def main(args):
     model.add(Conv2D(filters=48, kernel_size=(5, 5), strides=(2, 2), activation='relu'))
     model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
     model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
+    model.add(Dropout(args.dropout_rate))
     model.add(Flatten())
     model.add(Dense(1164, activation='relu'))
     model.add(Dense(100, activation='relu'))
@@ -174,6 +175,8 @@ if __name__ == '__main__':
             help='Whether we should graph the loss function or not')
     parser.add_argument('-m', '--model_filename',
             help='If specified, the model is saved into the given location')
+    parser.add_argument('-r', '--dropout_rate', default=0.5, type=float,
+            help='Dropout rate for dropout layers')
     parser.add_argument('-s', '--summary', action='store_true',
             help='Whether to print a summary of the model or not')
 
