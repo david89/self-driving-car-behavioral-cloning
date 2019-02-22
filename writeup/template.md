@@ -135,10 +135,12 @@ First of all, the training data was split into two sets: 80% training data and 2
 Then, In order to augment the data set, I flipped the images (from left to right) and their steering measurements. Additionally I took into consideration images from all cameras (not just the center camera). For example:
 
 This is one of the original images of the data set:
-[Before augmentation](before-augmentation.png)
+
+![Before augmentation](before-augmentation.png)
 
 And this is after the augmentation:
-[After augmentation](after-augmentation.png)
+
+![After augmentation](after-augmentation.png)
 
 Additionally in order to capture good driving behavior, I recorded extra data. One lap in the easy track focusing on center lane driving. Another lap on the easy track but going clockwise instead of counter-clockwise. And finally, one full lap on the hard track focusing on center lane driving. But it's worth mentioning that the extra data wasn't necessary for the easy track. The model hasn't been able to drive a full lap around the hard track, but the extra data has definitely helped improving the model.
 
