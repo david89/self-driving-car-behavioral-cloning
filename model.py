@@ -126,6 +126,9 @@ def main(args):
     model.add(Dense(10, activation='relu'))
     model.add(Dense(1))
 
+    if args.summary:
+        print(model.summary())
+
     # We use mean squared error instead of something like softmax because we
     # are trying to predict a continuous value.
     model.compile(loss='mse', optimizer='adam')
@@ -157,7 +160,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
             description='Trains a behavioral cloning model')
-    parser.add_argument('-a', '--augment', default=True, type=bool,
+    parser.add_argument('-a', '--augment', action='store_true',
             help='Whether to augment the data set or not')
     parser.add_argument('-b', '--batch_size', default=600, type=int,
             help='Batch size')
@@ -171,6 +174,8 @@ if __name__ == '__main__':
             help='Whether we should graph the loss function or not')
     parser.add_argument('-m', '--model_filename',
             help='If specified, the model is saved into the given location')
+    parser.add_argument('-s', '--summary', action='store_true',
+            help='Whether to print a summary of the model or not')
 
     args = parser.parse_args()
     main(args)
