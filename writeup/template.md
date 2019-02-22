@@ -17,6 +17,41 @@ The goals / steps of this project are the following:
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+#### Are all required files submitted?
+Yes.
+
+#### Is the code functional?
+Yes. You can verify it by running:
+```
+python drive.py model.h5
+```
+
+#### Is the code usable and readable?
+I'd argue that yes. Although there are some bits that can definitely be improved.
+
+#### Has an appropriate model architecture been employed for the task?
+Yes, as we are going to explain later in this document, we based our model architecture on the NVIDIA self-driving model architecture.
+
+#### Has an attempt been made to reduce overfitting of the model?
+Yes. We are going to get into more details about this later.
+
+#### Have the model parameters been tuned appropriately?
+Yes. We are going to get into more details about this later.
+
+#### Has the training data chosen appropriately?
+Yes. We are going to get into more details about this later.
+
+#### Is the solution design documented?
+Yes. The documentation is split between this document and the code itself.
+
+#### Is the model architecture documented?
+Yes. We are going to get into more details about this later.
+
+#### Is the creation of the training dataset and training process documented?
+Yes. We are going to get into more details about this later.
+
+#### Is the car able to navigate correctly on test data?
+Yes. As you can see in the [following video](video.mp4)
 
 ---
 ### Files Submitted & Code Quality
