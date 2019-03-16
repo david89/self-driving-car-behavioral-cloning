@@ -87,6 +87,7 @@ The model architecture that I used is based on the NVIDIA [End to End Learning f
 * 5x5 Convolutional layer with 2x2 strides and 48 output features followed by a RELU activation layer.
 * 3x3 Convolutional layer with 64 output features followed by a RELU activation layer.
 * 3x3 Convolutional layer with 64 output features followed by a RELU activation layer.
+* A Dropout layer to reduce overfitting.
 * Flattening layer.
 * Dense layer with 1164 features followed by a RELU activation layer.
 * Dense layer with 100 features followed by a RELU activation layer.
@@ -113,6 +114,8 @@ conv2d_4 (Conv2D)            (None, 3, 35, 64)         27712
 _________________________________________________________________
 conv2d_5 (Conv2D)            (None, 1, 33, 64)         36928
 _________________________________________________________________
+dropout_1 (Dropout)          (None, 1, 33, 64)         0
+_________________________________________________________________
 flatten_1 (Flatten)          (None, 2112)              0
 _________________________________________________________________
 dense_1 (Dense)              (None, 1164)              2459532
@@ -133,11 +136,11 @@ _________________________________________________________________
 
 #### 2. Attempts to reduce overfitting in the model
 
-Dropout was considered in order to reduce overfitting, but wasn't actually necessary for the easy track.
+Dropout was introduced to reduce overfitting.
 
-One measure implemented to avoid overfitting was to do a manual inspection on the verification loss and try to tune the number of epochs that will result in the "best" verification loss (for example, if we see that the verification loss decreases after N epochs, but starts oscillating afterwards, then let's reduce the number of epochs to N).
+Another measure implemented to avoid overfitting was to do a manual inspection on the verification loss and try to tune the number of epochs that will result in the "best" verification loss (for example, if we see that the verification loss decreases after N epochs, but starts oscillating afterwards, then let's reduce the number of epochs to N).
 
-Another measure that was implemented was to split the train data into a train data and validation data (80% and 20% respectively).
+One last measure that was implemented was to split the train data into a train data and validation data (80% and 20% respectively).
 
 #### 3. Model parameter tuning
 
